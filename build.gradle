@@ -1,0 +1,65 @@
+plugins {
+	id "org.springframework.boot" version "2.1.3.RELEASE"
+	id "java"
+}
+
+apply plugin: "io.spring.dependency-management"
+
+sourceSets {
+	integrationtest {
+		java {
+			srcDirs = ["src/integrationtest/java"]
+		}
+		resources{
+			srcDirs = ["src/integrationtest/resources"]
+		}
+	}
+}
+
+group = "com.sree.rampup"
+sourceCompatibility = "1.8"
+version = "${project_rampup_version}"
+
+repositories {
+	mavenCentral()
+}
+
+task integrationTest(type: Test, group: "verification") {
+	testClassesDirs = sourceSets.integrationtest.output.classesDirs
+	classpath = sourceSets.integrationtest.runtimeClasspath
+	mustRunAfter tasks.test
+}
+
+
+check.dependsOn integrationTest
+
+dependencies {
+	compile "org.springframework.boot:spring-boot-starter-actuator"
+	compile "org.springframework.boot:spring-boot-starter-data-jpa"
+	compile "org.springframework.boot:spring-boot-starter-web"
+	runtimeOnly "org.springframework.boot:spring-boot-devtools"
+
+	compile("org.projectlombok:lombok:${lombok_version}")
+	annotationProcessor("org.projectlombok:lombok:${lombok_version}")
+
+	compile group: "org.flywaydb", name: "flyway-core"
+	compile group: "mysql", name: "mysql-connector-java", version: "5.1.44"
+	//runtimeOnly("com.h2database:h2")
+	testCompile("com.h2database:h2")
+	testCompile("org.springframework.boot:spring-boot-starter-test")
+	testCompile "io.cucumber:cucumber-java:${cucumber_version}"
+	testCompile "io.cucumber:cucumber-junit:${cucumber_version}"
+	testCompile "io.cucumber:cucumber-spring:${cucumber_version}"
+
+	// Provide at compile-time the classes produced by main and test
+	integrationtestCompile sourceSets.main.output
+	integrationtestCompile sourceSets.test.output
+
+	// Provide at compile-time the dependencies that main and test require
+	integrationtestCompile configurations.compile
+	integrationtestCompile configurations.testCompile
+
+	// Provide at run-time the dependencies that main and test require
+	integrationtestRuntime configurations.runtime
+	integrationtestRuntime configurations.testRuntime
+}
